@@ -5,6 +5,7 @@ import com.github.pagehelper.PageInfo;
 import net.canway.meeting_message.mapper.DepartmentMapper;
 import net.canway.meeting_message.model.Department;
 import net.canway.meeting_message.model.Result;
+import net.canway.meeting_message.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -52,5 +53,10 @@ public class DepartmentService {
             return new Result("未找到该部门信息","404",selectOne);
         }
         return new Result("查询成功","200",selectOne);
+    }
+
+    public Result findUsers(Integer id){
+        List<User> users = departmentDao.findUsers(id);
+        return new Result("查询成功","200",users);
     }
 }

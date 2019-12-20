@@ -6,6 +6,8 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import net.canway.meeting_message.model.Result;
 import net.canway.meeting_message.model.User;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.security.NoSuchAlgorithmException;
 
@@ -36,4 +38,7 @@ public interface UserApi {
 
     @ApiOperation("删除用户")
     public Result deleteUser(Integer id);
+
+    @ApiOperation("修改密码")
+    public Result changePasswd(String username,String password);
 }

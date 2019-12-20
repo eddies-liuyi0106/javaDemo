@@ -5,7 +5,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 @Data
 @ToString
@@ -13,13 +15,13 @@ import javax.validation.constraints.NotEmpty;
 @AllArgsConstructor
 public class MRoom {
     private Integer id;
-    @NotEmpty(message = "会议室名不能为空")
+    @NotEmpty(message = "会议室名不能为空 ")
     private String name;
-    @NotEmpty(message = "预定人不能为空")
+    @NotEmpty(message = "容纳人数不能为空 ")
     private String num_peop;
     /**
-     * true为空闲
-     * false为占用
+     * true为空闲 1
+     * false为占用 0
      */
     private boolean status;
 }

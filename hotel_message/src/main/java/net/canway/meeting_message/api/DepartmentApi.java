@@ -6,6 +6,7 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import net.canway.meeting_message.model.Department;
 import net.canway.meeting_message.model.Result;
+import org.springframework.web.bind.annotation.PathVariable;
 
 @Api(value = "部门管理接口", description = "部门管理接口")
 public interface DepartmentApi {
@@ -30,4 +31,7 @@ public interface DepartmentApi {
 
     @ApiOperation("根据id查找部门")
     Result findById(Integer id);
+
+    @ApiOperation("查询部门人数")
+    public Result findUsers(Integer id);
 }

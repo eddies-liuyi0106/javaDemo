@@ -11,7 +11,7 @@ import java.util.List;
 @Repository
 public interface EquipmentMapper {
 
-    @Insert("insert into tb_equ values(#{id},#{name})")
+    @Insert("insert into tb_equ values(null,#{name})")
     boolean insert(Equipment equipment);
 
     @Delete("delete from tb_equ where id=#{id}")

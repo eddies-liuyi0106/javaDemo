@@ -5,6 +5,7 @@ import net.canway.meeting_message.model.Result;
 import net.canway.meeting_message.model.User;
 import net.canway.meeting_message.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
@@ -68,4 +69,18 @@ public class UserController implements UserApi {
         userService.userToExcel(response);
     }
 
+    @GetMapping("/findByUsername/{username}")
+    public Result findByUsername(@PathVariable("username") String username){
+        return userService.findByUserName(username);
+    }
+
+    @GetMapping("/changePasswd/{username}/{password}")
+    public Result changePasswd(@PathVariable("username") String username,@PathVariable("password") String password){
+       return userService.changePasswd(username,password);
+    }
+
+    @GetMapping("/findMe")
+    public Result findMe() {
+        return userService.findMe();
+    }
 }

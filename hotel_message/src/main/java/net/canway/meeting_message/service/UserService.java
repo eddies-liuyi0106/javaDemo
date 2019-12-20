@@ -7,6 +7,10 @@ import net.canway.meeting_message.common.UniqueValidatException;
 import net.canway.meeting_message.mapper.UserMapper;
 import net.canway.meeting_message.model.Result;
 import net.canway.meeting_message.model.User;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.crypto.hash.Md5Hash;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.util.ByteSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +27,9 @@ public class UserService {
     @Autowired
     private UserMapper userMapper;
 
+
     public Result findAll(){
+//        Subject subject = SecurityUtils.getSubject();
         List<User> users = userMapper.findAll();
         return new Result("查询成功", "200", users);
     }
@@ -52,10 +58,11 @@ public class UserService {
     public Result insertUser(User user) throws NoSuchAlgorithmException {
         UniqueCheck(user,false);
         String password = user.getPassword();
-        MessageDigest md = MessageDigest.getInstance("MD5");
-        md.update(password.getBytes());
-        String md5Password = new BigInteger(1,md.digest()).toString(16);
+        String salt = getString(24);
+        ByteSource byteSalt = ByteSource.Util.bytes(salt);
+        String md5Password  = new Md5Hash(password,byteSalt,2).toHex();
         user.setPassword(md5Password);
+        user.setSalt(salt);
         boolean result = userMapper.insertUser(user);
         if(!result){
             return new Result("添加失败", "404", null);
@@ -102,6 +109,26 @@ public class UserService {
     }
 
 
+    //根据用户名修改密码
+    public Result changePasswd(String username,String newPassword){
+        User user = userMapper.doLogin(username);
+        String salt = getString(24);
+        ByteSource byteSalt = ByteSource.Util.bytes(salt);
+        String md5Password  = new Md5Hash(newPassword,byteSalt,2).toHex();
+        user.setPassword(md5Password);
+        user.setSalt(salt);
+        userMapper.changePasswd(user);
+        return new Result("修改成功","200",null);
+    }
+
+
+    public Result findMe(){
+        Subject subject =  SecurityUtils.getSubject();
+        String username = subject.getPrincipal().toString();
+        System.out.println(username);
+        User user = userMapper.findOne(userMapper.checkUsername(username).getId());
+        return new Result("查询成功","200",user);
+    }
 
 
     //唯一校验
@@ -135,15 +162,39 @@ public class UserService {
         }
         else {
 
-                for(String key:userMap.keySet()){
-                    errorMessage.add(key);
-                }
+            for(String key:userMap.keySet()){
+                errorMessage.add(key);
+            }
 
         }
         throw new UniqueValidatException(errorMessage.toString()+"已存在，请修改");
 
     }
-
-
-
+    //随机字符串
+    public static String getString(int length) {
+        Random random=new Random();
+        StringBuffer sb=new StringBuffer();
+        for(int i=0;i<length;i++){
+            int number=random.nextInt(3);
+            long result=0;
+            switch(number){
+                case 0:
+                    result=Math.round(Math.random()*25+65);//取一个随机的ASCII码，大写字母
+                    sb.append(String.valueOf((char)result));//转字符存起来
+                    break;
+                case 1:
+                    result=Math.round(Math.random()*25+97);//取一个随机的ASCII码，小写字母
+                    sb.append(String.valueOf((char)result));//转字符存起来
+                    break;
+                case 2:
+                    sb.append(String.valueOf(new Random().nextInt(10)));//数字
+                    break;
+            }
+        }
+        return sb.toString();
+    }
+    public Result findByUserName(String username) {
+        List<User> user = userMapper.findByUsername(username);
+        return new Result("查询成功", "200", user);
+    }
 }

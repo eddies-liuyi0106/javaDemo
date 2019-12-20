@@ -12,24 +12,25 @@ import java.util.List;
 public interface UserMapper {
     @Select("select id,username,name,age,sex,phone,email,did from tb_user")
     @Results({
-            @Result(column="did",property="department",javaType= Department.class,
-                    one=@One(select="net.canway.meeting_message.mapper.DepartmentMapper.findById")) //部门通过ID查询接口
+            @Result(column = "did", property = "department", javaType = Department.class,
+                    one = @One(select = "net.canway.meeting_message.mapper.DepartmentMapper.findById")) //部门通过ID查询接口
     })
     List<User> findAll();
 
     @Select("select id,username,name,age,sex,phone,email,did from tb_user where username like #{username}")
     @Results({
-            @Result(column="did",property="department",javaType= Department.class,
-                    one=@One(select="net.canway.meeting_message.mapper.DepartmentMapper.findById"))
+            @Result(column = "did", property = "department", javaType = Department.class,
+                    one = @One(select = "net.canway.meeting_message.mapper.DepartmentMapper.findById"))
     })
     List<User> findByUsername(String username);
 
     @Select("select * from tb_user where id=#{id}")
     @Results({
-            @Result(column="did",property="department",javaType=Department.class,
-                    one=@One(select="net.canway.meeting_message.mapper.DepartmentMapper.findById"))
+            @Result(column = "did", property = "department", javaType = Department.class,
+                    one = @One(select = "net.canway.meeting_message.mapper.DepartmentMapper.findById"))
     })
     User findOne(Integer id);
+
     @Update("update tb_user set username=#{username},name=#{name},age=#{age},sex=#{sex},phone=#{phone},email=#{email}" +
             " where id=#{id}")
     boolean updateUser(User user);
@@ -50,4 +51,13 @@ public interface UserMapper {
 
     @Select("select id from tb_user where phone=#{phone}")
     User checkPhone(String phone);
+
+    @Select("select username,password,salt from tb_user where username=#{username}")
+    User doLogin(String username);
+
+    @Select("select email from tb_user where username=#{username}")
+    String findEmailByName(String username);
+
+    @Update("update tb_user set password=#{password},salt=#{salt} where username=#{username}")
+    boolean changePasswd(User user);
 }

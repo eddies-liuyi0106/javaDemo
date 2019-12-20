@@ -16,7 +16,7 @@ import java.util.Date;
 @AllArgsConstructor
 public class Meeting {
     private Integer id;
-    @NotNull
+    @NotNull(message = "会议名不能为空")
     private String name;
     @Valid
     private User applicant;

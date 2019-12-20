@@ -1,5 +1,6 @@
 package net.canway.meeting_message;
 
+import net.canway.meeting_message.common.EmailUtil;
 import net.canway.meeting_message.mapper.MRoomMapper;
 import net.canway.meeting_message.mapper.MeetingMapper;
 import net.canway.meeting_message.model.MRoom;
@@ -103,5 +104,22 @@ class HotelMessageApplicationTests {
         for (Meeting meeting : all) {
             System.out.println(meeting);
         }
+    }
+
+    @Autowired
+    EmailUtil emailUtil;
+    @Test
+    public void email() throws Exception {
+        String code = emailUtil.code();
+        EmailUtil.createMimeMessage("1",code);
+    }
+
+    @Test
+    public void test19(){
+        Map<String,String> map=new HashMap<>();
+        map.put("111","qqq");
+        map.put("222","www");
+        String remove = map.remove("111");
+        System.out.println(map.get("111")+"....."+remove);
     }
 }

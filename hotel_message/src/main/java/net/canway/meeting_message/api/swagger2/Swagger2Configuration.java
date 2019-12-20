@@ -1,4 +1,4 @@
-package net.canway.meeting_message.api;
+package net.canway.meeting_message.api.swagger2;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
