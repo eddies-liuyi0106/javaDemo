@@ -1,8 +1,8 @@
-package net.canway.hotel_message.dao;
+package net.canway.meeting_message.mapper;
 
-import net.canway.hotel_message.model.MRoom;
-import net.canway.hotel_message.model.Meeting;
-import net.canway.hotel_message.model.User;
+import net.canway.meeting_message.model.MRoom;
+import net.canway.meeting_message.model.Meeting;
+import net.canway.meeting_message.model.User;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
@@ -20,7 +20,7 @@ public interface MeetingMapper {
                     property = "applicant",
                     javaType = User.class,
                     column = "reserve_id",
-                    one = @One(select = "net.canway.hotel_message.dao.UserMapper.findOne")
+                    one = @One(select = "net.canway.meeting_message.mapper.UserMapper.findOne")
             ),
             @Result(column = "startTime", property = "startTime"),
             @Result(column = "endTime", property = "endTime"),
@@ -28,7 +28,7 @@ public interface MeetingMapper {
                     property = "meetingRoom",
                     javaType = MRoom.class,
                     column = "mr_id",
-                    one = @One(select = "net.canway.hotel_message.dao.MRoomMapper.findOne")
+                    one = @One(select = "net.canway.meeting_message.mapper.MRoomMapper.findOne")
             )
     })
     ArrayList<Meeting> findAllByMessage(String message);
@@ -50,15 +50,15 @@ public interface MeetingMapper {
     Meeting findOne(Integer meetingId);
 
     @Select("SELECT max(id) FROM tb_meeting")
-    @ResultType(value = java.lang.Integer.class)
+    @ResultType(value = Integer.class)
     Integer findMaxId();
 
     @Select("SELECT count(id) FROM tb_meeting")
-    @ResultType(value = java.lang.Integer.class)
+    @ResultType(value = Integer.class)
     Integer findCount();
 
     @Select("SELECT count(id) FROM tb_meeting WHERE LOCATE(#{message},name)>0")
-    @ResultType(value = java.lang.Integer.class)
+    @ResultType(value = Integer.class)
     Integer findCountByMessage(String message);
 
     @Delete("DELETE FROM tb_meeting WHERE id=#{meetingId}")
@@ -76,12 +76,12 @@ public interface MeetingMapper {
     @Delete("DELETE FROM tb_equ_meeting WHERE mid=#{mid}")
     boolean deleteMeeting_equ(@Param("mid") Integer mid);
 
-    @Select("SELECT DISTINCT id FROM tb_meeting WHERE id!=#{meetingId} AND (startTime BETWEEN #{startTime} AND #{endTime} OR endTime BETWEEN #{startTime} AND #{endTime}) ")
-    @ResultType(value = java.lang.Integer.class)
+    @Select("SELECT DISTINCT mr_id FROM tb_meeting WHERE id!=#{meetingId} AND (startTime BETWEEN #{startTime} AND #{endTime} OR endTime BETWEEN #{startTime} AND #{endTime}) ")
+    @ResultType(value = Integer.class)
     ArrayList<Integer> findBusinessMeetingRoom(@Param("startTime") Date startTime, @Param("endTime") Date endTime, @Param("meetingId") Integer meetingId);
 
     @Select("Select eid FROM tb_equ_meeting WHERE mid=#{meetingId}")
-    @ResultType(value = java.lang.Integer.class)
+    @ResultType(value = Integer.class)
     ArrayList<Integer> findEquipmentIds(Integer meetingId);
 
 }

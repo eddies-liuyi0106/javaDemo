@@ -35,8 +35,8 @@ public interface UserMapper {
             " where id=#{id}")
     boolean updateUser(User user);
 
-    @Insert("insert into tb_user(username,password,name,age,sex,phone,email,did) " +
-            "values(#{username},#{password},#{name},#{age},#{sex},#{phone},#{email},#{did})")
+    @Insert("insert into tb_user(username,password,name,age,sex,phone,email,did,salt)" +
+            "values(#{username},#{password},#{name},#{age},#{sex},#{phone},#{email},#{did},#{salt})")
     boolean insertUser(User user);
 
     @Delete("delete from tb_user where id=#{id}")

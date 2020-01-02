@@ -1,9 +1,9 @@
-package net.canway.hotel_message.controller;
+package net.canway.meeting_message.controller;
 
-import net.canway.hotel_message.api.MeetingApi;
-import net.canway.hotel_message.model.MeetingPackage;
-import net.canway.hotel_message.model.Result;
-import net.canway.hotel_message.service.MeetingService;
+import net.canway.meeting_message.api.MeetingApi;
+import net.canway.meeting_message.model.MeetingPackage;
+import net.canway.meeting_message.model.Result;
+import net.canway.meeting_message.service.MeetingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -58,21 +58,21 @@ public class MeetingController implements MeetingApi {
     }
 
     @ResponseBody
-    @PostMapping("/delete")
-    public Result delete(@RequestBody Integer meetingId) {
+    @GetMapping("/delete/{meetingId}")
+    public Result delete(@PathVariable(name = "meetingId") Integer meetingId) throws Exception {
         meetingService.delete(meetingId);
         return new Result("删除成功", "200", null);
     }
 
     @ResponseBody
     @PostMapping("/update")
-    public Result update(@Validated @RequestBody MeetingPackage meetingPackage) {
+    public Result update(@Validated @RequestBody MeetingPackage meetingPackage) throws Exception {
         return meetingService.update(meetingPackage.getMeeting(), meetingPackage.getEquipmentIds());
     }
 
     @ResponseBody
     @PostMapping("/add")
-    public Result addMeeting(@Validated @RequestBody MeetingPackage meetingPackage) {
+    public Result addMeeting(@Validated @RequestBody MeetingPackage meetingPackage) throws Exception {
         return meetingService.add(meetingPackage.getMeeting(), meetingPackage.getEquipmentIds());
     }
 
@@ -83,8 +83,8 @@ public class MeetingController implements MeetingApi {
     }
 
     @ResponseBody
-    @GetMapping("/findFreeMeetingRoom/{startTime}/{endTime}")
-    public Result findFreeMeetingRoom(@PathVariable(name = "startTime") Date startTime, @PathVariable(name = "endTime") Date endTime) {
-        return meetingService.findFreeMeetingRoom(startTime, endTime);
+    @GetMapping("/findFreeMeetingRoom/{startTime}/{endTime}/{meetingId}")
+    public Result findFreeMeetingRoom(@PathVariable(name = "startTime") Date startTime, @PathVariable(name = "endTime") Date endTime, @PathVariable(name = "meetingId") Integer meetingId) {
+        return meetingService.findFreeMeetingRoom(startTime, endTime, meetingId);
     }
 }

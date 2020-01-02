@@ -63,7 +63,6 @@ public class UserController implements UserApi {
         return result;
     }
 
-
     @GetMapping("/ExcelDownload")
     public void excelDownload(HttpServletResponse response) throws IOException {
         userService.userToExcel(response);

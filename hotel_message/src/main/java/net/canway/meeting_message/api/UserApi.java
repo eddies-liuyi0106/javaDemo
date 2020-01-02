@@ -41,4 +41,7 @@ public interface UserApi {
 
     @ApiOperation("修改密码")
     public Result changePasswd(String username,String password);
+
+    @ApiOperation("查询当前用户")
+    public Result findMe();
 }

@@ -1,12 +1,14 @@
-package net.canway.hotel_message.service;
+package net.canway.meeting_message.service;
 
-import net.canway.hotel_message.dao.EquipmentMapper;
-import net.canway.hotel_message.dao.MRoomMapper;
-import net.canway.hotel_message.dao.MeetingMapper;
-import net.canway.hotel_message.dao.UserMapper;
-import net.canway.hotel_message.model.*;
+import net.canway.meeting_message.mapper.EquipmentMapper;
+import net.canway.meeting_message.mapper.MRoomMapper;
+import net.canway.meeting_message.mapper.MeetingMapper;
+import net.canway.meeting_message.mapper.UserMapper;
+import net.canway.meeting_message.model.*;
+import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -66,16 +68,7 @@ public class MeetingService {
         } else {
             count = meetingMapper.findCountByMessage(message);
         }
-        if (size <= 0 || size == null) {
-            size = 10;
-        }
-        int page = 0;
-        if (count % size != 0) {
-            page = count / size + 1;
-        } else {
-            page = count / size;
-        }
-        return new Result("查询成功", "200", page);
+        return new Result("查询成功", "200", count);
     }
 
     public Result findOne(Integer meetingId) {
@@ -87,22 +80,29 @@ public class MeetingService {
         return new Result("查询成功", "200", resultMapping);
     }
 
-    public Result delete(Integer meetingId) {
-        boolean success = meetingMapper.delete(meetingId);
-        if (success) {
-            return new Result("删除成功", "200", null);
-        }
-        return new Result("删除失败，不存在此会议", "500", null);
+    @Transactional(rollbackFor = Exception.class)
+    public Result delete(Integer meetingId) throws Exception {
+        meetingMapper.delete(meetingId);
+        meetingMapper.deleteMeeting_equ(meetingId);
+        return new Result("删除成功", "200", null);
     }
 
-    public Result update(Meeting meeting, ArrayList<Integer> equipmentIds) {
+    @Transactional(rollbackFor = Exception.class)
+    public Result update(Meeting meeting, ArrayList<Integer> equipmentIds) throws Exception {
+        Meeting beFund = meetingMapper.findOne(meeting.getId());
+        if(beFund.getStartTime().getTime()<new Date().getTime()){
+            return new Result("过期的会议不可以修改","500",null);
+        }
         Result chooseResult = checkMeeting(meeting, equipmentIds);
         if (chooseResult.getCode().equals("500")) {
             return chooseResult;
         }
         Meeting beChanged = meetingMapper.findOne(meeting.getId());
         if (beChanged.getStartTime().getTime() != meeting.getStartTime().getTime() || beChanged.getEndTime().getTime() != meeting.getEndTime().getTime()) {
-            meetingRoomService.updateStatus(meeting.getStartTime(), meeting.getEndTime(), meeting.getMeetingRoom().getId());
+            Result result = meetingRoomService.updateStatus(meeting.getStartTime(), meeting.getEndTime(), meeting.getMeetingRoom().getId());
+            if (result.getCode() != "200") {
+                return result;
+            }
         }
         meetingMapper.update(meeting);
         meetingMapper.deleteMeeting_equ(meeting.getId());
@@ -115,12 +115,16 @@ public class MeetingService {
         return new Result("修改成功", "200", null);
     }
 
-    public Result add(Meeting meeting, ArrayList<Integer> equipmentIds) {
+    @Transactional(rollbackFor = Exception.class)
+    public Result add(Meeting meeting, ArrayList<Integer> equipmentIds) throws Exception {
         Result chooseResult = checkMeeting(meeting, equipmentIds);
         if (chooseResult.getCode().equals("500")) {
             return chooseResult;
         }
-        meetingRoomService.updateStatus(meeting.getStartTime(), meeting.getEndTime(), meeting.getMeetingRoom().getId());
+        Result result = meetingRoomService.updateStatus(meeting.getStartTime(), meeting.getEndTime(), meeting.getMeetingRoom().getId());
+        if (result.getCode() != "200") {
+            return result;
+        }
         meetingMapper.add(meeting);
         if (equipmentIds != null && equipmentIds.size() != 0) {
             for (Integer equipmentId : equipmentIds) {
@@ -138,15 +142,41 @@ public class MeetingService {
         return true;
     }
 
+    public boolean checkDate(Date startTime, Date endTime) {
+        Date now = new Date();
+        if (startTime.getTime() < now.getTime() || startTime.getTime() > endTime.getTime()) {
+            return false;
+        }
+        return true;
+    }
+
+
+    private boolean checkMeetingRoom(Integer meetingRoomId) {
+        MRoom mRoom = mRoomMapper.findOne(meetingRoomId);
+        if (mRoom == null) {
+            return false;
+        }
+        return true;
+    }
+
     public Result checkMeeting(Meeting meeting, ArrayList<Integer> equipmentIds) {
+        if (!checkDate(meeting.getStartTime(), meeting.getEndTime())) {
+            return new Result("不合法的时间", "500", null);
+        }
+        if (!checkMeetingRoom(meeting.getMeetingRoom().getId())) {
+            return new Result("不存在的会议室", "500", null);
+        }
         if (equipmentIds != null && equipmentIds.size() != 0) {
             for (Integer i : equipmentIds) {
-                checkEquipment(i);
+                if (!checkEquipment(i)) {
+                    return new Result("不存在的设备", "500", null);
+                }
+                ;
             }
         }
         ArrayList<Integer> intersection = meetingMapper.findBusinessMeetingRoom(meeting.getStartTime(), meeting.getEndTime(), meeting.getId());
         User user = userMapper.findOne(meeting.getApplicant().getId());
-        if (intersection != null && intersection.size() != 0) {
+        if (intersection.contains(meeting.getMeetingRoom().getId())) {
             return new Result("修改失败，时间段冲突", "500", null);
         }
         if (user == null) {
@@ -166,8 +196,8 @@ public class MeetingService {
         return equipments;
     }
 
-    public Result findFreeMeetingRoom(Date startTime, Date endTime) {
-        ArrayList<Integer> businessMeetingRoomIds = meetingMapper.findBusinessMeetingRoom(startTime, endTime, -1);
+    public Result findFreeMeetingRoom(Date startTime, Date endTime, Integer meetingId) {
+        ArrayList<Integer> businessMeetingRoomIds = meetingMapper.findBusinessMeetingRoom(startTime, endTime, meetingId);
         List<MRoom> allRooms = mRoomMapper.findAll();
         Iterator<MRoom> iterator = allRooms.iterator();
         while (iterator.hasNext()) {
@@ -183,12 +213,15 @@ public class MeetingService {
     }
 
 
-    private Map<Meeting, List<Equipment>> addEquipment(ArrayList<Meeting> meetings) {
-        Map<Meeting, List<Equipment>> result = new HashMap<>();
+    private ArrayList<Map<String, Object>> addEquipment(ArrayList<Meeting> meetings) {
+        ArrayList<Map<String, Object>> result = new ArrayList<>();
         for (Meeting meeting : meetings) {
+            Map<String, Object> map = new HashMap<>();
             ArrayList<Integer> equipmentIds = meetingMapper.findEquipmentIds(meeting.getId());
             List<Equipment> equipments = findEquipments(equipmentIds);
-            result.put(meeting, equipments);
+            map.put("meeting", meeting);
+            map.put("equipments", equipments);
+            result.add(map);
         }
         return result;
     }

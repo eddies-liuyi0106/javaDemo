@@ -1,16 +1,16 @@
-package net.canway.hotel_message.api;
+package net.canway.meeting_message.api;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
-import net.canway.hotel_message.model.Meeting;
-import net.canway.hotel_message.model.MeetingPackage;
-import net.canway.hotel_message.model.Result;
+import net.canway.meeting_message.model.MeetingPackage;
+import net.canway.meeting_message.model.Result;
+
 
 import java.util.Date;
 
-@Api(value = "会议管理接口", description = "会议管理接口，提供页面的增，删，改，查等")
+@Api(value = "会议管理接口", description = "会议管理接口")
 public interface MeetingApi {
 
     @ApiOperation("查询所有会议")
@@ -68,7 +68,7 @@ public interface MeetingApi {
                     @ApiImplicitParam(name = "meetingId", value = "会议Id", paramType = "path", dataType = "Integer")
             }
     )
-    public Result delete(Integer meetingId);
+    public Result delete(Integer meetingId) throws Exception;
 
     @ApiOperation("修改会议")
     @ApiImplicitParams(
@@ -76,7 +76,7 @@ public interface MeetingApi {
                     @ApiImplicitParam(name = "meetingPackage", value = "包含会议和设备的实体", paramType = "path", dataType = "meetingPackage")
             }
     )
-    public Result update(MeetingPackage meetingPackage);
+    public Result update(MeetingPackage meetingPackage) throws Exception;
 
     @ApiOperation("增加会议")
     @ApiImplicitParams(
@@ -84,7 +84,7 @@ public interface MeetingApi {
                     @ApiImplicitParam(name = "meetingPackage", value = "包含会议和设备的实体", paramType = "path", dataType = "meetingPackage")
             }
     )
-    public Result addMeeting(MeetingPackage meetingPackage);
+    public Result addMeeting(MeetingPackage meetingPackage) throws Exception;
 
     @ApiOperation("查询某个会议的详细信息")
     @ApiImplicitParams(
@@ -94,12 +94,13 @@ public interface MeetingApi {
     )
     public Result findOne(Integer meetingId);
 
-    @ApiOperation("查询当前时间段内空闲的会议室")
+    @ApiOperation("查询当前时间段内空闲的会议室，修改时用")
     @ApiImplicitParams(
             {
                     @ApiImplicitParam(name = "startTime", value = "会议开始时间", paramType = "path", dataType = "Date"),
-                    @ApiImplicitParam(name = "endTime", value = "会议结束时间", paramType = "path", dataType = "Date")
+                    @ApiImplicitParam(name = "endTime", value = "会议结束时间", paramType = "path", dataType = "Date"),
+                    @ApiImplicitParam(name = "meetingId", value = "会议id", paramType = "path", dataType = "Integer")
             }
     )
-    public Result findFreeMeetingRoom(Date startTime, Date endTime);
+    public Result findFreeMeetingRoom(Date startTime, Date endTime, Integer meetingId);
 }
